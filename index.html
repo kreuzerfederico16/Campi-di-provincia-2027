@@ -1263,10 +1263,11 @@ td:has(>.hdl){touch-action:none}
 </style>
 <div id="app"></div>
 <div id="modal" hidden></div>
+<form name="segnalazione" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" hidden><input name="bot-field"><input name="subject"><input name="nome"><textarea name="nota"></textarea><input name="versione"><input name="pagina"><input name="dove"><input name="schermo"><textarea name="partita"></textarea><textarea name="errori"></textarea><input name="browser"><input type="file" name="dati"></form>
 
 <script>
 'use strict';
-const VERSIONE='v83';window.__errs=[];addEventListener('error',e=>{try{__errs.push({t:new Date().toISOString(),m:String(e.message||''),s:String(e.error&&e.error.stack||'').split('\n').slice(0,4).join(' | ')});if(__errs.length>25)__errs.shift()}catch(x){}});addEventListener('unhandledrejection',e=>{try{__errs.push({t:new Date().toISOString(),m:'promise: '+String(e.reason&&e.reason.message||e.reason)});if(__errs.length>25)__errs.shift()}catch(x){}});
+const VERSIONE='v84';window.__errs=[];addEventListener('error',e=>{try{__errs.push({t:new Date().toISOString(),m:String(e.message||''),s:String(e.error&&e.error.stack||'').split('\n').slice(0,4).join(' | ')});if(__errs.length>25)__errs.shift()}catch(x){}});addEventListener('unhandledrejection',e=>{try{__errs.push({t:new Date().toISOString(),m:'promise: '+String(e.reason&&e.reason.message||e.reason)});if(__errs.length>25)__errs.shift()}catch(x){}});
 /* ====== costanti ====== */
 const CATS=['Eccellenza','Promozione','Prima Categoria','Seconda Categoria','Terza Categoria'];
 const BASE=[62,54,46,39,32];          // abilità media per categoria
@@ -3285,7 +3286,7 @@ jobs(){const t=T(S.user),rep=(S.coach&&S.coach.rep)||2,cap=capLvl(),conf=S.conf=
   <p class="small muted" style="margin:6px 0 0">Puoi mandare una candidatura a settimana. Se il tuo presidente lo viene a sapere, la fiducia cala.${wk?' Questa settimana l\'hai già mandata.':''}</p></section>`},
 options(){const opts=[[700,'Lenta'],[420,'Normale'],[180,'Veloce'],[0,'Istantanea']];
   return `<h2>Opzioni</h2>${ui.msg&&ui.view==='options'?`<div class="okmsg">${esc(ui.msg)}</div>`:''}
-  <section class="card bugcard"><h3>Hai trovato qualcosa che non va?</h3><p class="small">Scrivi cosa hai visto: il gioco prepara un file con la tua situazione da mandare a Claude.</p><button class="btn primary" data-a="bugrep">Segnala un problema</button></section>
+  <section class="card bugcard"><h3>Hai trovato qualcosa che non va?</h3><p class="small">Scrivi cosa hai visto: la segnalazione arriva direttamente a Federico, con la tua situazione di gioco.</p><button class="btn primary" data-a="bugrep">Segnala un problema</button></section>
   ${fsOK()?`<section class="card"><h3>Schermo intero</h3><p class="small">Nasconde le barre del browser e usa tutto lo schermo. Per uscire premi di nuovo il tasto o Esc.</p>${fsBtn('btn primary')}</section>`:FS_HOME?'':`<section class="card"><h3>Schermo intero</h3><p class="small">${IS_IOS?'Su iPad: apri il gioco in Safari, tocca Condividi e poi “Aggiungi alla schermata Home”. Dall\'icona il gioco si apre senza le barre di Safari.':'Qui il browser non permette lo schermo intero. Apri il gioco nella sua pagina, o premi F11 sul PC.'}</p></section>`}
   <div class="grid"><section class="card"><h3>Gioco</h3>
    <div class="field"><span class="small">Velocità del calendario quando premi Continua</span><div class="chips">${opts.map(([v,l])=>`<button class="btn" data-a="setspeed" data-v="${v}" aria-pressed="${SET.speed===v}">${l}</button>`).join('')}</div></div>
@@ -4339,12 +4340,30 @@ function bugCtx(note,withSave){let live=null;try{if(LIVE){const lm=LIVE;live={mi
    partita:live,errori:(window.__errs||[]).slice(),salvataggio:withSave&&S?S:null}}
 function bugOpen(){let o=document.getElementById('bugov');if(!o){o=document.createElement('div');o.id='bugov';document.body.appendChild(o)}o.hidden=false;
   o.innerHTML=`<div class="bugsh" role="dialog" aria-modal="true" aria-label="Segnala un problema"><h3>Segnala un problema</h3>
-   <p class="small">Scrivi cosa hai visto e cosa ti aspettavi. Il gioco aggiunge da solo dove sei (giorno, pagina, partita in corso, misura dello schermo) e, se vuoi, il salvataggio: così Claude rivede esattamente la tua situazione.</p>
+   <p class="small">Scrivi cosa hai visto e cosa ti aspettavi. Il gioco aggiunge da solo dove sei (giorno, pagina, partita in corso, misura dello schermo) e, se vuoi, il salvataggio: così si rivede esattamente la tua situazione.</p>
+   <input id="bugnm" type="text" maxlength="40" placeholder="Il tuo nome (facoltativo)" value="${esc((()=>{try{return localStorage.getItem('dm27-bugnome')||''}catch(e){return ''}})())}" style="font:inherit;padding:8px 10px;border:1px solid var(--line,#ccd2d8);border-radius:6px;background:var(--bg,#fff);color:inherit">
    <textarea id="bugtx" rows="5" placeholder="Per esempio: al 70' ho fatto un cambio ma il giocatore è rimasto in campo"></textarea>
    <label class="small"><input type="checkbox" id="bugsv" checked> Includi il salvataggio della carriera</label>
-   <div class="row"><button class="btn primary" data-a="bugsend">Scarica il file da mandare</button><button class="btn" data-a="bugclose">Annulla</button></div>
-   <p class="small muted" id="bugmsg">Poi trascina il file nella chat con Claude, insieme a una foto dello schermo se puoi.</p></div>`;
+   <div class="row"><button class="btn primary" data-a="bugsend" id="bugsendb">Invia</button><button class="btn" data-a="bugclose">Annulla</button></div>
+   <p class="small muted" id="bugmsg">La segnalazione arriva direttamente a Federico. Non serve altro.</p></div>`;
   const tx=document.getElementById('bugtx');if(tx)tx.focus()}
+/* invia la segnalazione al modulo Netlify "segnalazione" (arriva per mail); false se non riesce */
+async function bugPost(ctx,txt,nome,stamp){try{if(!/^https?:$/.test(location.protocol))return false;
+  const g=ctx.gioco||{},sc=ctx.schermo||{},pt=ctx.partita;
+  const f=new FormData();f.append('form-name','segnalazione');f.append('bot-field','');
+  f.append('subject',`Segnalazione ${ctx.versione} · ${g.pagina||'menu'}${nome?' · '+nome:''}`);
+  f.append('nome',nome||'(senza nome)');f.append('nota',ctx.nota);f.append('versione',ctx.versione);
+  f.append('pagina',[g.pagina||'menu',g.finestra?'finestra: '+g.finestra:''].filter(Boolean).join(' · '));
+  f.append('dove',g.giorno?[g.giorno,'stagione '+g.stagione,'giornata '+g.giornata,g.squadra?g.squadra+(g.categoria?' ('+g.categoria+')':''):'senza panchina'].join(' · '):'fuori dalla carriera');
+  f.append('schermo',`${sc.larghezza}x${sc.altezza} · densità ${sc.densita} · ${sc.pc?'PC':'tocco'}${sc.tema?' · tema '+sc.tema:''}`);
+  f.append('partita',pt&&pt.min!=null?`${pt.min}' ${pt.casa} ${pt.ris} ${pt.fuori}${pt.coppa?' (coppa)':''}\n${(pt.eventi||[]).join('\n')}`:(pt&&pt.errore?pt.errore:'nessuna'));
+  f.append('errori',(ctx.errori||[]).length?ctx.errori.map(e=>`${e.t} ${e.m}${e.s?' | '+e.s:''}`).join('\n'):'nessuno');
+  f.append('browser',ctx.browser||'');
+  let blob=new Blob([txt],{type:'application/json'}),name=`segnalazione-${stamp}.json`;
+  try{if(window.CompressionStream){blob=await new Response(blob.stream().pipeThrough(new CompressionStream('gzip'))).blob();name+='.gz'}}catch(e){blob=new Blob([txt],{type:'application/json'});name=`segnalazione-${stamp}.json`}
+  if(blob.size<7e6)f.append('dati',blob,name);
+  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),45000);
+  const r=await fetch('/',{method:'POST',body:f,signal:ac.signal});clearTimeout(to);return r.ok}catch(e){return false}}
 /* tasto Segnala su ogni schermata: linguetta sul bordo sinistro quando la pagina non ha già il suo */
 function bugFab(){let f=document.getElementById('bugfab');if(!f){f=document.createElement('button');f.id='bugfab';f.type='button';f.dataset.a='bugrep';f.title='Segnala un problema';f.textContent='Segnala';document.body.appendChild(f)}
   const ov=document.getElementById('bugov'),own=[...document.querySelectorAll('[data-a=bugrep]')].some(b=>b!==f&&b.offsetParent!==null&&!b.closest('#bugfab')&&(()=>{const r=b.getBoundingClientRect();return r.width>0&&r.bottom>0&&r.top<innerHeight})());
@@ -4749,13 +4768,19 @@ const A={
   bugrep(){bugOpen()},
   fullscr(){fsToggle()},
   bugclose(){const o=document.getElementById('bugov');if(o){o.hidden=true;o.innerHTML=''}},
-  async bugsend(){const tx=document.getElementById('bugtx'),sv=document.getElementById('bugsv'),msg=document.getElementById('bugmsg');const note=tx?tx.value.trim():'';
+  async bugsend(){const tx=document.getElementById('bugtx'),sv=document.getElementById('bugsv'),msg=document.getElementById('bugmsg'),nmI=document.getElementById('bugnm'),bt=document.getElementById('bugsendb');const note=tx?tx.value.trim():'';
     if(!note){if(msg)msg.textContent='Scrivi almeno una riga su cosa non va.';if(tx)tx.focus();return}
-    let txt;try{txt=JSON.stringify(bugCtx(note,!sv||sv.checked))}catch(e){txt=JSON.stringify(bugCtx(note,false))}
-    const d=new Date(),p=n=>String(n).padStart(2,'0'),fn=`segnalazione-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.json`;
+    if(bt&&bt.disabled)return;const nome=nmI?nmI.value.trim().slice(0,40):'';try{localStorage.setItem('dm27-bugnome',nome)}catch(e){}
+    let ctx;try{ctx=bugCtx(note,!sv||sv.checked)}catch(e){ctx=bugCtx(note,false)}
+    let txt;try{txt=JSON.stringify(ctx)}catch(e){ctx=bugCtx(note,false);txt=JSON.stringify(ctx)}
+    const d=new Date(),p=n=>String(n).padStart(2,'0'),stamp=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`,fn=`segnalazione-${stamp}.json`;
+    if(bt){bt.disabled=true;bt.textContent='Invio…'}if(msg)msg.textContent='Sto inviando…';
+    const sent=await bugPost(ctx,txt,nome,stamp);
+    if(bt){bt.disabled=false;bt.textContent='Invia'}
+    if(sent){if(msg)msg.innerHTML='<b>Inviata, grazie!</b> Federico la riceve per mail.';if(tx)tx.value='';if(bt){bt.textContent='Chiudi';bt.dataset.a='bugclose'}return}
     let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){}
     try{if(dl)await dl.save({filename:fn,data:new Blob([txt],{type:'application/json'})});else{const u=URL.createObjectURL(new Blob([txt],{type:'application/json'})),l=document.createElement('a');l.href=u;l.download=fn;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
-      if(msg)msg.innerHTML=`Fatto: trovi <b>${esc(fn)}</b> nei download. Trascinalo nella chat con Claude.`}
+      if(msg)msg.innerHTML=`Non sono riuscito a inviarla (connessione?), quindi l'ho salvata: trovi <b>${esc(fn)}</b> nei download. Mandala a Federico.`}
     catch(e){if(msg)msg.textContent=e&&e.code==='declined'?'Download annullato.':'Il download non è partito: '+(e.message||e)}},
   welcok(){modal.hidden=true;modal.innerHTML='';render()},
   welcrosa(){modal.hidden=true;modal.innerHTML='';ui.view='squad';render();window.scrollTo(0,0)},
