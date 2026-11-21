@@ -1,3 +1,7 @@
-# Campi di Provincia
+# Dilettanti Manager 27 · Campi di Provincia
 
-Manageriale di calcio dilettantistico. Il gioco è in `index.html`; Netlify pubblica questa cartella così com'è.
+Netlify pubblica questa cartella così com'è, a ogni push su `main`.
+
+- `index.html` — sito ufficiale (pagina di presentazione), con le immagini in `img/`
+- `gioca/index.html` — **il gioco**. Ogni nuova versione del gioco va copiata qui, non nella radice.
+- `_redirects` — il vecchio indirizzo `/sito` porta alla home.
